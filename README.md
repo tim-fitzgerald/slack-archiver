@@ -15,5 +15,5 @@ The script needs some variables set for proper use.
 * `SUBTYPES` is a list containing the subtype messages that the script should ignore when trying to find the latest message i.e. by default it will ignore `channel_join`
 and `channel_leave` messages 
 * `WHITELIST` is a list containing channel ID's that should not be archived even if they meet the criteria for archival. 
-* `DRY_RUN` is a flag which when set to `True` will notify the channels of impending archival without actually taking action on them. 
+* `DRY_RUN` is a flag which when set to `True` will notify the channels of impending archival without actually taking action on them. This must be set to `False` for the script to carry out it's ultimate task.
 * `age_threshold` is an integer representing the amount of days we want to use to consider a channel inactive - default to 60 days. 
