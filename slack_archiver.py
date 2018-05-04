@@ -1,16 +1,18 @@
-import os
-import requests
-import json
 from datetime import timedelta, datetime
+import json
+import os
 import sys
 import time
 
-##### SLACK VARIABLES #####
-# Two headers are needed due to the user token being needed to get channel history
-# and bot user needed to post the notification and close the channel
+import requests
+
+'''
+ Two headers are needed due to the user token being needed to get channel history
+ and bot user needed to post the notification and close the channel
+'''
 SLACK_USER_TOKEN = os.getenv("SLACK_USER_TOKEN")
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
-slack_uri = "https://slack.com/api/"
+SLACK_URI = "https://slack.com/api/"
 
 headers_user = {
     "Authorization" : "Bearer " + SLACK_USER_TOKEN,
@@ -22,21 +24,15 @@ headers_bot = {
     "Content-type" : "application/json"
 }
 
-###########################
-###########################
-
 SUBTYPES = {'channel_leave', 'channel_join'}
-WHITELIST = []
+WHITELIST = [] # Whitelist for requested channels.
 DRY_RUN = True
 
 unused_channels = []
-age_threshold = 60 #days
-age_threshold_secs = age_threshold / 86400
 
 def get_channels(base_uri, my_headers):
-    channel_ids = []
     api_endpoint = "channels.list"
-    req_url = slack_uri + api_endpoint
+    req_url = SLACK_URI + api_endpoint
     parameters = {'exclude_archived': 1}
     response = requests.get(req_url, headers=my_headers, params=parameters)
     response = response.json()
@@ -90,31 +86,34 @@ def send_message(base_uri, my_headers, my_id):
     print (response.json())
    
 def archive_channel(base_uri, my_headers, channels_list):
-    api_endpoint = channels.archive
+    api_endpoint = "channels.archive"
     req_url = base_uri + api_endpoint
     for channel in channels_list:
         payload = {"channel": channel}
-        response = requests.post(req_url, headers=my_headers)
+        payload_json = json.dumps(payload)
+        response = requests.post(req_url, headers=my_headers, data=payload_json)
+        print (response.json())
+        time.sleep(1.0)
 
 
 def main():
-    channels = get_channels(slack_uri, headers_user)
+    channels = get_channels(SLACK_URI, headers_user)
 
     for channel in channels:
         print ('.', end='', flush=True)
         if channel['id'] in WHITELIST:
             continue
-        last_timestamp = channel_activity(slack_uri, headers_user, channel)
+        last_timestamp = channel_activity(SLACK_URI, headers_user, channel)
         channel_unused(channel['id'], last_timestamp)
         time.sleep(1.0)
 
     for channel in unused_channels:
         print ('.', end='', flush=True)
-        send_message(slack_uri, headers_bot, channel)
+        send_message(SLACK_URI, headers_bot, channel)
     
     if DRY_RUN != True:
         print ('.', end='', flush=True)
-        archive_channel(slack_uri, headers_user, unused_channels)
+        archive_channel(SLACK_URI, headers_user, unused_channels)
 
     #for i in unused_channels:
         #print (i)
