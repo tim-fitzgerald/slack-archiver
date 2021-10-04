@@ -1,1 +1,6 @@
+count_channels.py
+slackarchiver/data
+.vscode
 .env
+slackarchiver/__pycache__
+/env
